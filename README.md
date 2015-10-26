@@ -3,14 +3,18 @@ This was our culminating project for an Introduction to Computer Science class a
 ## Usage
 1. Run GUI.java in eclipse or compile and run on the command line.  A window will appear with fields to input login credentials.
 
-![Login Screen](https://raw.github.com/clrung/FTPSearcher/master/images/Login_Screen.png)
+<p align="center">
+<img src="https://raw.github.com/clrung/FTPSearcher/master/images/Login_Screen.png" alt="Login Screen"/>
+</p>
 
 2. Click the 'Connect' button, and a dialog box will indicate that a connection has been established.
 3. Search for a filename in the search box and click the Search button.
 
  * If multiple files are found with the same filename, a numbered list showing the filename and absolute path will appear.  Choose which file number to download in the dropdown and click the 'Download' button.
 
- ![Search Results](https://raw.github.com/clrung/FTPSearcher/master/images/Search_Results.png)
+ <p align="center">
+ <img src="https://raw.github.com/clrung/FTPSearcher/master/images/Search_Results.png" alt="Search Results"/>
+ </p>
 
 4. If the filename and path are known, it may be input in the bottom text box and downloaded via the 'Download' button, forgoing the search process.
 5. After the 'Download' button is clicked, a chooser will appear to designate the save location and name of the file to be downloaded.
