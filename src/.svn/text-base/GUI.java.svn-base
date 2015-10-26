@@ -1,0 +1,358 @@
+/**
+ * CSCI 204 - Brian King & Xiannong Meng
+ * 
+ * Assignment: FTPSearcher - Final Project
+ * Team Members: Charles Cole, Christopher Rung, Alex Meijer
+ * Created: Nov 17, 2011, 4:56:37 PM
+ */
+
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.util.ArrayList;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+
+/**
+ * This class is the driver for the program. It launches a GUI that allows the
+ * user to connect to an FTP server, search for files on the server, and
+ * download the files to a specified directory.
+ * 
+ * 
+ * @author atm011, clr023, clc031
+ * @version 1.0
+ */
+public class GUI extends JPanel implements ActionListener {
+
+	// Instance variables
+	private static final long serialVersionUID = 1L;
+	private static JFrame frame;
+	private static JButton connectButton = new JButton("Connect");
+	private static JButton searchButton = new JButton("Search");
+	private static JButton downloadPathButton = new JButton("Download");
+	private static JButton logoffButton = new JButton("Logoff");
+	private static JTextField serverAddress = new JTextField(33);
+	private static JTextField userName = new JTextField(33);
+	private static JPasswordField password = new JPasswordField(33);
+	private static JTextField downloadFilePath = new JTextField(30);
+	private static JTextField searchField = new JTextField(32);
+	private static JTextArea fileList = new JTextArea(1, 38);
+	private static JScrollPane scrollPane = new JScrollPane(fileList);
+	private static JLabel downloadLabel = new JLabel("Download file number: ");
+	private static JComboBox comboBox = new JComboBox();
+	private static JButton downloadButton = new JButton("Download");
+	private static JLabel downloadPathLabel = new JLabel("Input the file path of a file you would like to download: ");
+	private static JLabel serverAddressLabel = new JLabel("Server:        ");
+	private static JLabel userNameLabel = new JLabel("User name: ");
+	private static JLabel passwordLabel = new JLabel("Password:  ");
+	private static ArrayList<String> contents;
+	private static FTPConn conn = null;
+	private static Parser parser;
+	private static ArrayList<FileObject> files;
+	private Tree tree;
+	private FileObject[] results;
+
+	/**
+	 * Default constrictor
+	 * 
+	 * Constructs a new JFrame with various elements and launches it.
+	 */
+	public GUI() {
+		frame = new JFrame("FTP Searcher");
+		JPanel elements = (JPanel) createElements();
+		fileList.setEditable(false);
+		setViews(true);
+		addAndSetListeners();
+		frame.add(elements);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.pack();
+		frame.setResizable(false);
+		frame.setSize(500, 260);
+		frame.setVisible(true);
+	}
+
+	/**
+	 * Constructs a new <code>JPanel</code> object and adds the elements that
+	 * will be shown in the GUI to the object.
+	 * 
+	 * 
+	 * @return a <code>JComponent</code> that holds all the elements of the GUI.
+	 *         This will be added to the main GUI frame.
+	 */
+	private JComponent createElements() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new FlowLayout());
+		addElements(panel);
+		return panel;
+	}
+
+	/**
+	 * Adds all the elements of the GUI to the passed <code>JPanel</code>
+	 * 
+	 * 
+	 * @param panel
+	 *            is the <code>JPanel</code> that will contain the UI elements
+	 */
+	private void addElements(JPanel panel) {
+		panel.add(serverAddressLabel);
+		panel.add(serverAddress);
+		panel.add(userNameLabel);
+		panel.add(userName);
+		panel.add(passwordLabel);
+		panel.add(password);
+		panel.add(connectButton);
+		panel.add(logoffButton);
+		panel.add(searchField);
+		panel.add(searchButton);
+		panel.add(scrollPane);
+		panel.add(downloadLabel);
+		panel.add(comboBox);
+		panel.add(downloadButton);
+		panel.add(downloadPathLabel);
+		panel.add(downloadFilePath);
+		panel.add(downloadPathButton);
+	}
+
+	/**
+	 * Adds listeners to the <code>JButton</code> elements. This will make the
+	 * button run its appropriate code later in the actionPerformed method.
+	 * 
+	 */
+	private void addAndSetListeners() {
+		connectButton.addActionListener(this);
+		connectButton.setActionCommand("connect");
+		logoffButton.addActionListener(this);
+		logoffButton.setActionCommand("logoff");
+		searchButton.addActionListener(this);
+		searchButton.setActionCommand("search");
+		downloadButton.addActionListener(this);
+		downloadButton.setActionCommand("downloadFile");
+		downloadPathButton.addActionListener(this);
+		downloadPathButton.setActionCommand("download");
+		frame.addWindowListener(new WindowEventHandler());
+	}
+
+	/**
+	 * Performs the actions of the <code>JButton</code>. This method will
+	 * determine which <code>JButton</code> the user clicks on and run the
+	 * appropriate code.
+	 * 
+	 */
+	public void actionPerformed(ActionEvent e) {
+		if (e.getActionCommand().equals("connect")) {
+			conn = new FTPConn(serverAddress.getText(), userName.getText(), new String(password.getPassword()));
+			try {
+				// as the program connects to the server, don't allow the user
+				// to click the connect button again, which may hang up the
+				// program
+				connectButton.setEnabled(false);
+				connectButton.setText("Connecting...");
+				conn.connect();
+				setViews(false);
+				connectButton.setText("Connect");
+				JOptionPane.showMessageDialog(frame, "Connection established!");
+				contents = conn.getAllContents(0);
+			} catch (ConnectException e1) {
+				JOptionPane.showMessageDialog(frame, "Please try again", "Error!", JOptionPane.ERROR_MESSAGE);
+				connectButton.setText("Connect");
+				connectButton.setEnabled(true);
+				return;
+			} catch (IOException e1) {
+				JOptionPane.showMessageDialog(frame, "Please try again", "Error!", JOptionPane.ERROR_MESSAGE);
+				connectButton.setText("Connect");
+				connectButton.setEnabled(true);
+				return;
+			} catch (FTPConn.LoginFailedException e1) {
+				JOptionPane.showMessageDialog(frame, "Please try again", "Error!", JOptionPane.ERROR_MESSAGE);
+				connectButton.setText("Connect");
+				connectButton.setEnabled(true);
+				return;
+			}
+			// generate new Parser object that will create an ArrayList of
+			// FileObjects from the passed ArrayList of Strings
+			parser = new Parser(contents);
+			files = parser.parse();
+			this.tree = new Tree(new FileObject("root", "/", true));
+			for (int i = 0; i < files.size(); i++) {
+				try {
+					this.tree.add(files.get(i));
+				} catch (Tree.InvalidPathException e1) {
+				}
+			}
+		} else if (e.getActionCommand().equals("logoff")) {
+			try {
+				conn.logout();
+				setViews(true);
+				JOptionPane.showMessageDialog(frame, "Logged off successfully");
+			} catch (IOException e1) {
+				return;
+			}
+		} else if (e.getActionCommand().equals("search")) {
+			// resets the window to its old state
+			fileList.setText("");
+			frame.setSize(500, 320);
+			fileList.setRows(2);
+			comboBox.removeAllItems();
+			if (searchField.getText().length() > 0) {
+				this.results = this.tree.find(searchField.getText());
+				if (this.results == null) {
+					scrollPane.setVisible(false);
+					downloadLabel.setVisible(false);
+					comboBox.setVisible(false);
+					downloadButton.setVisible(false);
+					JOptionPane.showMessageDialog(frame, "No files were found!", "Error!", JOptionPane.ERROR_MESSAGE);
+				} else {
+					String fileOutput = "";
+					if (this.results.length == 1)
+						fileOutput += "1 file was found:\n";
+					else
+						fileOutput += this.results.length + " files were found:\n";
+					for (int i = 0; i < this.results.length; i++) {
+						fileOutput += (i + 1) + ": " + this.results[i].getFileName() + "    ";
+						fileOutput += "Path: " + this.results[i].getAbsPath() + "\n";
+						comboBox.addItem(new Integer((i + 1)));
+						// adjust the file list text field to show one more line
+						// to accommodate the next line
+						fileList.setRows(fileList.getRows() + 1);
+						frame.setSize(500, frame.getHeight() + 17);
+					}
+					scrollPane.setVisible(true);
+					downloadLabel.setVisible(true);
+					comboBox.setVisible(true);
+					downloadButton.setVisible(true);
+					fileList.setText(fileOutput);
+				}
+			} else {
+				scrollPane.setVisible(false);
+				downloadLabel.setVisible(false);
+				comboBox.setVisible(false);
+				downloadButton.setVisible(false);
+				JOptionPane.showMessageDialog(frame, "Input a file to search for!", "Error!", JOptionPane.ERROR_MESSAGE);
+			}
+		} else if (e.getActionCommand().equals("download")) {
+			JFileChooser chooser = new JFileChooser();
+			int option = chooser.showSaveDialog(null);
+			if (option == JFileChooser.APPROVE_OPTION) {
+				String outputPath = chooser.getSelectedFile().getAbsolutePath();
+				try {
+					conn.ftpDownload(downloadFilePath.getText(), outputPath);
+					JOptionPane.showMessageDialog(frame, "File downloaded successfully!");
+					// prevents the server from timing out
+					conn.logout();
+					conn.connect();
+				} catch (IOException e1) {
+				} catch (FTPConn.NoFileException e1) {
+					JOptionPane.showMessageDialog(frame, "No file found!", "Error!", JOptionPane.ERROR_MESSAGE);
+				} catch (FTPConn.LoginFailedException e2) {
+				}
+			}
+		} else if (e.getActionCommand().equals("downloadFile")) {
+			int fileNumber = (Integer) comboBox.getSelectedItem();
+			JFileChooser chooser = new JFileChooser();
+			int option = chooser.showSaveDialog(null);
+			if (option == JFileChooser.APPROVE_OPTION) {
+				String outputPath = chooser.getSelectedFile().getAbsolutePath();
+				try {
+					if (!this.results[fileNumber - 1].getAbsPath().equals("/")) {
+						conn.ftpDownload(this.results[fileNumber - 1].getAbsPath() + "/" + this.results[fileNumber - 1].getFileName(), outputPath);
+						JOptionPane.showMessageDialog(frame, "File downloaded successfully!");
+					} else {
+						conn.ftpDownload(this.results[fileNumber - 1].getAbsPath() + this.results[fileNumber - 1].getFileName(), outputPath);
+						JOptionPane.showMessageDialog(frame, "File downloaded successfully!");
+					}
+					// prevents the server from timing out
+					conn.logout();
+					conn.connect();
+				} catch (IOException e1) {
+				} catch (FTPConn.NoFileException e1) {
+					JOptionPane.showMessageDialog(frame, "No file found!", "Error!", JOptionPane.ERROR_MESSAGE);
+				} catch (FTPConn.LoginFailedException e2) {
+				}
+			}
+		}
+	}
+
+	/**
+	 * Makes various elements visible or invisible in the GUI.
+	 * 
+	 * 
+	 * @param reset
+	 *            will hide various elements and make text fields blank if true
+	 *            and will show these elements if false
+	 */
+	private void setViews(boolean reset) {
+		if (reset) {
+			serverAddress.setEnabled(true);
+			serverAddress.setText("");
+			userName.setEnabled(true);
+			userName.setText("");
+			password.setEnabled(true);
+			password.setText("");
+			connectButton.setEnabled(true);
+			logoffButton.setEnabled(false);
+			searchField.setVisible(false);
+			searchButton.setVisible(false);
+			scrollPane.setVisible(false);
+			downloadLabel.setVisible(false);
+			comboBox.setVisible(false);
+			downloadButton.setVisible(false);
+			downloadPathLabel.setVisible(false);
+			downloadFilePath.setVisible(false);
+			downloadPathButton.setVisible(false);
+			fileList.setText("");
+			searchField.setText("");
+			downloadFilePath.setText("");
+			frame.setSize(500, 260);
+		} else {
+			connectButton.setEnabled(false);
+			serverAddress.setEnabled(false);
+			userName.setEnabled(false);
+			password.setEnabled(false);
+			searchField.setVisible(true);
+			searchButton.setVisible(true);
+			downloadPathLabel.setVisible(true);
+			downloadFilePath.setVisible(true);
+			downloadPathButton.setVisible(true);
+			logoffButton.setEnabled(true);
+		}
+	}
+
+	/**
+	 * Main method - Launches the GUI.
+	 * 
+	 * 
+	 * @param args
+	 *            are command line arguments (not used)
+	 */
+	public static void main(String args[]) {
+		new GUI();
+	}
+
+	/**
+	 * Nested class for the <code>GUI</code> that forces the program to
+	 * automatically log the user out of the FTP server when they exit the
+	 * program
+	 * 
+	 */
+	public class WindowEventHandler extends WindowAdapter {
+		public void windowClosing(WindowEvent evt) {
+			logoffButton.doClick();
+			System.exit(0);
+		}
+	}
+}

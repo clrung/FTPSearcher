@@ -1,0 +1,237 @@
+/**
+ * CSCI 204 - Brian King & Xiannong Meng
+ * 
+ * Assignment: FTPSearcher - Final Project
+ * Team Members: Charles Cole, Christopher Rung, Alex Meijer
+ * Created: Nov 17, 2011, 4:56:37 PM
+ */
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
+import java.util.ArrayList;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+/**
+ * JUnit tests for <code>Tree</code> class
+ * 
+ * 
+ * @author atm011, clr023, clc031
+ * @version 1.0
+ */
+public class TreeTest {
+
+	// Instance variables
+	private Tree tree;
+
+	/**
+	 * Constructs a new Tree and
+	 * 
+	 * 
+	 * @throws java.lang.Exception
+	 */
+	@Before
+	public void setUp() throws Exception {
+		this.tree = new Tree();
+	}
+
+	/**
+	 * TearDown method
+	 * 
+	 * 
+	 * @throws java.lang.Exception
+	 */
+	@After
+	public void tearDown() throws Exception {
+		this.tree = null;
+	}
+
+	/**
+	 * Default constructor test
+	 * 
+	 * 
+	 * Test method for {@link Tree#Tree()}.
+	 */
+	@Test
+	public void testTree() {
+		this.tree = new Tree();
+	}
+
+	/**
+	 * Test for constructor with a specified root
+	 * 
+	 * 
+	 * Test method for {@link Tree#Tree(FileObject)}.
+	 */
+	@Test
+	public void testTreeFileObject() {
+		this.tree = new Tree(new FileObject("Root", "/", true));
+	}
+
+	/**
+	 * Test to get the root <code>FileObject</code>
+	 * 
+	 * 
+	 * Test method for {@link Tree#getRoot()}.
+	 */
+	@Test
+	public void testGetRoot() {
+		FileObject fileObj = new FileObject("Root", "/", true);
+
+		this.tree.setRoot(fileObj);
+		assertTrue(this.tree.getRoot().isEqual(fileObj));
+	}
+
+	/**
+	 * Test to set the root <code>FileObject</code> of the <code>Tree</code>
+	 * 
+	 * 
+	 * Test method for {@link Tree#setRoot(FileObject)}.
+	 */
+	@Test
+	public void testSetRoot() {
+		FileObject fileObj = new FileObject("Root", "/", true);
+
+		this.tree.setRoot(fileObj);
+		assertTrue(this.tree.getRoot().isEqual(fileObj));
+	}
+
+	/**
+	 * Get the total count of files and folders in the <code>Tree</code>
+	 * 
+	 * 
+	 * Test method for {@link Tree#getTotalCount()}.
+	 * 
+	 * @throws InvalidPathException
+	 */
+	@Test
+	public void testGetTotalCount() throws Tree.InvalidPathException {
+		this.tree.add(new FileObject("File1", "/", true));
+		this.tree.add(new FileObject("Docs", "/Docs", true));
+		this.tree.add(new FileObject("Doc1.doc", "/Docs", false));
+
+		assertEquals(this.tree.getTotalCount(), 3);
+	}
+
+	/**
+	 * Method to get the total count of only files in the <code>Tree</code>
+	 * 
+	 * 
+	 * Test method for {@link Tree#getFileCount()}.
+	 */
+	@Test
+	public void testGetFileCount() throws Tree.InvalidPathException {
+		this.tree.add(new FileObject("Folder1", "/", true));
+		this.tree.add(new FileObject("File2", "/", false));
+		this.tree.add(new FileObject("Docs", "/Docs", true));
+		this.tree.add(new FileObject("Doc1.doc", "/Docs", false));
+		this.tree.add(new FileObject("Files", "/Files", true));
+
+		// System.out.println(this.tree.getDirCount());
+		assertEquals(this.tree.getDirCount(), 3);
+	}
+
+	/**
+	 * Method to get the total count of only directories in the
+	 * <code>Tree</code>
+	 * 
+	 * 
+	 * Test method for {@link Tree#getDirCount()}.
+	 */
+	@Test
+	public void testGetDirCount() throws Tree.InvalidPathException {
+		this.tree.add(new FileObject("Folder1", "/Folder1", true));
+		this.tree.add(new FileObject("Folder2", "/Folder2", true));
+		this.tree.add(new FileObject("Folder3", "/Folder2/Folder3", true));
+		this.tree.add(new FileObject("File2", "/", false));
+		this.tree.add(new FileObject("Docs", "/Docs", true));
+		this.tree.add(new FileObject("Doc1.doc", "/Docs", false));
+		this.tree.add(new FileObject("MoreDocs", "/Docs/MoreDocs", true));
+		this.tree.add(new FileObject("Another", "/Docs/Another", true));
+		this.tree.add(new FileObject("Yes", "/Docs/MoreDocs/Yes", true));
+
+		// System.out.println(this.tree.getDirCount());
+		assertEquals(this.tree.getDirCount(), 7);
+	}
+
+	/**
+	 * Method to test clearing the Tree
+	 * 
+	 * 
+	 * Test method for {@link Tree#clear()}.
+	 */
+	@Test
+	public void testClear() {
+		this.tree.clear();
+
+		assertTrue(this.tree.getRoot() == null);
+	}
+
+	/**
+	 * Method to test adding a <code>FileObject</code> to the <code>Tree</code>
+	 * 
+	 * 
+	 * Test method for {@link Tree#add(FileObject)}.
+	 */
+	@Test
+	public void testAddFileObject() throws Tree.InvalidPathException {
+		this.tree.add(new FileObject("File1.txt", "/", false));
+		FileObject[] results = this.tree.find("File1.txt");
+
+		assertEquals(results.length, 1);
+	}
+
+	/**
+	 * Method to test adding an array <code>FileObject</code> to the
+	 * <code>Tree</code>
+	 * 
+	 * 
+	 * Test method for
+	 * {@link Tree#add(java.util.ArrayList, java.util.ArrayList, java.util.ArrayList)}
+	 * .
+	 */
+	@Test
+	public void testAddArrayListOfStringArrayListOfStringArrayListOfBoolean() throws Tree.InvalidArrayListException, Tree.InvalidPathException {
+		ArrayList<String> fileNames = new ArrayList<String>();
+		fileNames.add("File1");
+		fileNames.add("Docs");
+		fileNames.add("File1");
+
+		ArrayList<String> paths = new ArrayList<String>();
+		paths.add("/");
+		paths.add("/Docs");
+		paths.add("/Docs");
+
+		ArrayList<Boolean> isDirectory = new ArrayList<Boolean>();
+		isDirectory.add(false);
+		isDirectory.add(true);
+		isDirectory.add(false);
+
+		this.tree.add(fileNames, paths, isDirectory);
+
+		FileObject[] results1 = this.tree.find("File1");
+		FileObject[] results2 = this.tree.find("Docs");
+
+		assertEquals(results1.length + results2.length, 3);
+	}
+
+	/**
+	 * Method that tests the searching method of the <code>Tree</code>
+	 * 
+	 * 
+	 * Test method for {@link Tree#find(java.lang.String)}.
+	 */
+	@Test
+	public void testFind() throws Tree.InvalidPathException {
+		this.tree.add(new FileObject("File1.txt", "/", false));
+		this.tree.add(new FileObject("Files", "/Files", true));
+		this.tree.add(new FileObject("File1.txt", "/Files", false));
+
+		FileObject[] results = this.tree.find("File1.txt");
+
+		assertEquals(results.length, 2);
+	}
+}

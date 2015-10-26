@@ -1,0 +1,177 @@
+/**
+ * CSCI 204 - Brian King & Xiannong Meng
+ * 
+ * Assignment: FTPSearcher - Final Project
+ * Team Members: Charles Cole, Christopher Rung, Alex Meijer
+ * Created: Nov 17, 2011, 4:56:37 PM
+ */
+
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+
+import org.apache.commons.net.ftp.FTPFile;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+/**
+ * JUnit tests for the <code>FTPConn</code> class
+ * 
+ * 
+ * @author atm011, clr023, clc031
+ */
+public class FTPConnTest {
+
+	// Instance variables
+	public FTPConn testConn;
+
+	// This is the IP address if a target test server
+	public static final String SERVER_NAME = "134.82.168.211";
+	
+	// This is a test username
+	public static final String USER_NAME = "demo_user"; 
+
+	// This is a test password
+	public static final String PASSWORD = "demo_pw";
+
+	
+	@After
+	public void tearDown() throws IOException {
+		this.testConn = null;
+	}
+
+	@Test
+	public void testConnect() throws ConnectException, IOException,
+			FTPConn.LoginFailedException {
+		this.testConn = new FTPConn(SERVER_NAME, USER_NAME, PASSWORD);
+		this.testConn.connect();
+		assertTrue(this.testConn.getReply().substring(0, 3).equalsIgnoreCase("230"));
+	}
+
+	@Test(expected = UnknownHostException.class)
+	public void testConnect2() throws ConnectException, IOException,
+			FTPConn.LoginFailedException, UnknownHostException {
+		testConn = new FTPConn("asdaersdf", USER_NAME, PASSWORD);
+		testConn.connect();
+	}
+
+	@Test(expected = ConnectException.class)
+	public void testConnect3() throws ConnectException, IOException,
+			FTPConn.LoginFailedException {
+		this.testConn = new FTPConn("134.83.168.211", USER_NAME, PASSWORD);
+		this.testConn.connect();
+	}
+
+	@Test(expected = ConnectException.class)
+	public void testConnect4() throws ConnectException, IOException,
+			FTPConn.LoginFailedException {
+		this.testConn = new FTPConn("", USER_NAME, PASSWORD);
+		this.testConn.connect();
+	}
+
+	@Test(expected = FTPConn.LoginFailedException.class)
+	public void testConnect5() throws ConnectException, IOException,
+			FTPConn.LoginFailedException {
+		this.testConn = new FTPConn(SERVER_NAME, "134.82.168.211", PASSWORD);
+		this.testConn.connect();
+	}
+
+	@Test(expected = FTPConn.LoginFailedException.class)
+	public void testConnect6() throws ConnectException, IOException,
+			FTPConn.LoginFailedException {
+		this.testConn = new FTPConn(SERVER_NAME, "", PASSWORD);
+		this.testConn.connect();
+	}
+
+	@Test(expected = FTPConn.LoginFailedException.class)
+	public void testConnect7() throws ConnectException, IOException,
+			FTPConn.LoginFailedException {
+		this.testConn = new FTPConn(SERVER_NAME, USER_NAME, "demo_p");
+		this.testConn.connect();
+	}
+
+	@Test(expected = FTPConn.LoginFailedException.class)
+	public void testConnect8() throws ConnectException, IOException,
+			FTPConn.LoginFailedException {
+		this.testConn = new FTPConn(SERVER_NAME, USER_NAME, "");
+		this.testConn.connect();
+	}
+
+	@Before
+	public void setUp() throws ConnectException, IOException,
+			FTPConn.LoginFailedException {
+		this.testConn = new FTPConn(SERVER_NAME, USER_NAME, PASSWORD);
+		this.testConn.connect();
+	}
+
+	@Test
+	public void testCheckConnection() {
+		assertTrue(testConn.checkConnection());
+	}
+
+	@Test
+	public void testCheckConnection2() throws IOException {
+		this.testConn.logout();
+		assertFalse(this.testConn.checkConnection());
+	}
+
+	@Test
+	public void testGetReply() {
+		String reply = this.testConn.getReply().substring(0, 3);
+		assertTrue(reply.equalsIgnoreCase("230"));
+	}
+
+	@Test
+	public void testGetReply2() {
+		this.testConn.checkConnection();
+
+		// reply should be 200, NOOP reply
+		String reply = this.testConn.getReply().substring(0, 3);
+		assertTrue(reply.equalsIgnoreCase("200"));
+	}
+
+	@Test
+	public void testGetAllContents() throws IOException {
+		ArrayList<String> contents = this.testConn.getAllContents(0);
+		assertTrue(contents.get(0).equalsIgnoreCase("Path: /Documents"));
+		assertTrue(contents.get(contents.size() - 1).equalsIgnoreCase(
+				"File: windowstestprogram1.exe"));
+	}
+
+	@Test
+	public void testGetFiles() throws IOException {
+		ArrayList<FTPFile> files = this.testConn.getFiles();
+		assertTrue(files.get(0).getName().equals("Doc1.txt"));
+		assertTrue(files.get(files.size() - 1).getName().equals(
+				"windowstestprogram1.exe"));
+
+	}
+
+	@Test
+	public void testFtpDownload() throws IOException, FTPConn.NoFileException {
+
+		this.testConn.ftpDownload("/rootDoc2.txt", "testDownloadFile");
+
+		// 150 is download reply
+		assertTrue(this.testConn.getReply().substring(0, 3).equals("150"));
+
+	}
+
+	@Test(expected = FTPConn.NoFileException.class)
+	public void testFtpDownload2() throws IOException, FTPConn.NoFileException {
+		this.testConn.ftpDownload("/rootDc2.txt", "testDownloadFile");
+	}
+
+	@Test
+	public void testLogout() throws IOException {
+		assertTrue(this.testConn.checkConnection());
+		this.testConn.logout();
+		assertFalse(this.testConn.checkConnection());
+	}
+}

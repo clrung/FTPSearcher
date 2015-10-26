@@ -1,0 +1,166 @@
+/**
+ * CSCI 204 - Brian King & Xiannong Meng
+ * 
+ * Assignment: FTPSearcher - Final Project
+ * Team Members: Charles Cole, Christopher Rung, Alex Meijer
+ * Created: Nov 17, 2011, 4:56:37 PM
+ */
+
+/**
+ * The FileObject class - represents a file
+ * 
+ * 
+ * @author atm011, clr023, clc031
+ * @version 1.0
+ */
+public class FileObject {
+
+	// Instance variables
+	private String fileName;
+	private String absPath;
+	private boolean dir;
+
+	/**
+	 * Default constructor
+	 * 
+	 */
+	public FileObject() {
+		this.fileName = null;
+		this.absPath = null;
+		this.dir = false;
+	}
+
+	/**
+	 * Constructor with a specified file name and absolute path
+	 * 
+	 * 
+	 * @param fileName
+	 *            The name of the file
+	 * @param absPath
+	 *            The absolute path of the file
+	 * @param directory
+	 *            <code>true</code> if the <code>FileObject</code> is a
+	 *            directory, <code>false</code> if it is a file
+	 */
+	public FileObject(String fileName, String absPath, boolean directory) {
+		this.fileName = fileName;
+		this.absPath = absPath;
+		this.dir = directory;
+	}
+
+	/**
+	 * Get the name of the file
+	 * 
+	 * 
+	 * @return The name of the file
+	 */
+	public String getFileName() {
+		return this.fileName;
+	}
+
+	/**
+	 * Set the name of the file
+	 * 
+	 * 
+	 * @param fileName
+	 *            Name of the file
+	 */
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
+	/**
+	 * Check to see if this <code>FileObject</code> has a file name
+	 * 
+	 * 
+	 * @return <code>true</code> if it has a file name, <code>false</code> if it
+	 *         doesn't
+	 */
+	public boolean hasFileName() {
+		return (this.fileName != null ? true : false);
+	}
+
+	/**
+	 * Get the absolute path of the file
+	 * 
+	 * 
+	 * @return The absolute path of the file
+	 */
+	public String getAbsPath() {
+		return this.absPath;
+	}
+
+	/**
+	 * Set the absolute path of the file
+	 * 
+	 * 
+	 * @param absPath
+	 *            The absolute path of the file
+	 */
+	public void setAbsPath(String absPath) {
+		this.absPath = absPath;
+	}
+
+	/**
+	 * Check to see if this <code>FileObject</code> has an absolute path
+	 * 
+	 * 
+	 * @return <code>true</code> if it has an absolute path, <code>false</code>
+	 *         if it doesn't
+	 */
+	public boolean hasAbsPath() {
+		return (this.absPath != null ? true : false);
+	}
+
+	/**
+	 * toString method
+	 * 
+	 * 
+	 * Returns the <code>FileObject</code> as a String of the data that it
+	 * contains
+	 */
+	public String toString() {
+		return "\nName: " + this.fileName + "\nPath: " + this.absPath
+				+ "\nDir?: " + this.dir;
+	}
+
+	/**
+	 * Check to see if the <code>FileObject</code> is a directory
+	 * 
+	 * 
+	 * @return <code>true</code> if the <code>FileObject</code> is a directory,
+	 *         <code>false</code> if it isn't
+	 */
+	public boolean isDirectory() {
+		return (this.dir == true ? true : false);
+	}
+
+	/**
+	 * Checks to see if two FileObjects are equal to one another
+	 * 
+	 * 
+	 * @param fileObj
+	 *            The <code>FileObject</code> to compare to
+	 * @return <code>true</code> if both are equal, <code>false</code> if they
+	 *         aren't
+	 */
+	public boolean isEqual(FileObject fileObj) {
+		return (getFileName().equalsIgnoreCase(fileObj.getFileName())
+				&& getAbsPath().equalsIgnoreCase(fileObj.getAbsPath())
+				&& isDirectory() == fileObj.isDirectory() ? true : false);
+	}
+
+	/**
+	 * Searches the <code>FileObject</code> to see if it matches the search
+	 * criteria
+	 * 
+	 * 
+	 * @param criteria
+	 *            The criteria which to search for
+	 * @return <code>true</code> if the <code>FileObject</code> matches the
+	 *         search criteria, <code>false</code> if it doesn't
+	 */
+	protected boolean search(String criteria) {
+		return (this.fileName.equals(criteria) ? true : false);
+	}
+}
